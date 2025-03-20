@@ -86,5 +86,16 @@ namespace Filter
             Filters filter = new Sepia();
             backgroundWorker1.RunWorkerAsync(filter);
         }
+
+        private void увеличениеЯркостиToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Filters filter = new IncreasingBrightness();
+            backgroundWorker1.RunWorkerAsync(filter);
+        }
+
+        private void ловиВолнуСдвигВправоToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
