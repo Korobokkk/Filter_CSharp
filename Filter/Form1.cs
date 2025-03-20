@@ -95,7 +95,8 @@ namespace Filter
 
         private void ловиВолнуСдвигВправоToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
+            Filters filter = new RightShift();
+            backgroundWorker1.RunWorkerAsync(filter);
         }
     }
 }

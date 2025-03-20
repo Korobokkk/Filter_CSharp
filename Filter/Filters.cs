@@ -162,12 +162,18 @@ namespace Filter
             return resultColor;
         }
     }
-    //class RightShift: Filters
-    //{
-    //    protected int k = 50;
-    //    protected override Color calculateNewPixelColor(Bitmap sourceImage, int x, int y)
-    //    {
-    //        Color sourceColor = sourceImage.GetPixel(x, y);
-    //    }
-    //}
+    class RightShift : Filters
+    {
+        protected int k = 50;
+        protected override Color calculateNewPixelColor(Bitmap sourceImage, int x, int y)
+        {
+            Color resultColor = Color.Black;
+
+            if(x>=k && x < sourceImage.Width)
+            {
+                resultColor = sourceImage.GetPixel(x - k, y);
+            }
+            return resultColor;
+        }
+    }
 }
