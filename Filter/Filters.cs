@@ -113,11 +113,18 @@ namespace Filter
             return resultColor;
         }
     }
-    //class sepia : grayscale
-    //{
-    //    protected override color calculatenewpixelcolor(bitmap sourceimage, int x, int y)
-    //    {
-
-    //    }
-    //}
+    class Sepia : GrayScale
+    {
+        private int k = 10;
+        protected override Color calculateNewPixelColor(Bitmap sourceImage, int x, int y)
+        {
+            Color sourceColor = sourceImage.GetPixel(x, y);
+            int tmp = Intensety(sourceColor);
+            int resR = Clamp(tmp + 2 * k, 0, 255);
+            int resG = Clamp(tmp + (int)(0.5 * k),0 ,255);
+            int resB = Clamp(tmp - 1 * k,0, 255);
+            Color resultColor = Color.FromArgb(resR, resG, resB);
+            return resultColor;
+        }
+    }
 }

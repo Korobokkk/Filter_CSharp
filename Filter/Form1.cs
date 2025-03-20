@@ -83,7 +83,8 @@ namespace Filter
 
         private void сепияToolStripMenuItem1_Click(object sender, EventArgs e)
         {
-
+            Filters filter = new Sepia();
+            backgroundWorker1.RunWorkerAsync(filter);
         }
     }
 }
