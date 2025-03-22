@@ -98,5 +98,11 @@ namespace Filter
             Filters filter = new RightShift();
             backgroundWorker1.RunWorkerAsync(filter);
         }
+
+        private void тиснениеToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Filters filter = new Embossing();
+            backgroundWorker1.RunWorkerAsync(filter);
+        }
     }
 }

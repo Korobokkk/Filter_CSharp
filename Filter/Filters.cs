@@ -28,10 +28,10 @@ namespace Filter
         public Bitmap processImage(Bitmap sourceImage, BackgroundWorker worker)
         {
             Bitmap resultImage = new Bitmap(sourceImage.Width, sourceImage.Height);
-            for( int i=0; i< sourceImage.Width; i++)
+            for (int i = 0; i < sourceImage.Width; i++)
             {
                 worker.ReportProgress((int)((float)i / resultImage.Width * 100));
-                for( int j=0; j< sourceImage.Height; j++)
+                for (int j = 0; j < sourceImage.Height; j++)
                 {
                     resultImage.SetPixel(i, j, calculateNewPixelColor(sourceImage, i, j));
                 }
@@ -39,7 +39,7 @@ namespace Filter
             return resultImage;
         }
     }
-    class InvertFilter:Filters
+    class InvertFilter : Filters
     {
         protected override Color calculateNewPixelColor(Bitmap sourceImage, int x, int y)
         {
@@ -63,9 +63,9 @@ namespace Filter
             float resultR = 0;
             float resultG = 0;
             float resultB = 0;
-            for( int l=-radiusY; l<= radiusY; l++)
+            for (int l = -radiusY; l <= radiusY; l++)
             {
-                for( int k= -radiusX; k<= radiusX; k++)
+                for (int k = -radiusX; k <= radiusX; k++)
                 {
                     int idX = Clamp(x + k, 0, sourceImage.Width - 1);
                     int idY = Clamp(y + l, 0, sourceImage.Height - 1);
@@ -75,7 +75,7 @@ namespace Filter
                     resultB += neighborColor.B * kernel[k + radiusX, l + radiusY];
                 }
             }
-            return Color.FromArgb(Clamp((int)resultR, 0, 255), Clamp((int)resultG, 0, 255), Clamp((int)resultB, 0, 255));
+            return Color.FromArgb( Clamp((int)resultR, 0, 255), Clamp((int)resultG, 0, 255), Clamp((int)resultB, 0, 255));
         }
     }
     class BlurFilter : MatrixFilter
@@ -85,23 +85,23 @@ namespace Filter
             int sizeX = 3;
             int sizeY = 3;
             kernel = new float[sizeX, sizeY];
-            for( int i=0; i< sizeX; i++)
+            for (int i = 0; i < sizeX; i++)
             {
-                for( int j=0; j< sizeY; j++)
+                for (int j = 0; j < sizeY; j++)
                 {
                     kernel[i, j] = 1.0f / (float)(sizeX * sizeY);
                 }
             }
         }
     }
-    class GrayScale :Filters
+    class GrayScale : Filters
     {
         protected int Intensety(Color sourceColor)
         {
             float coefR = 0.299f;
             float coefG = 0.587f;
             float coefB = 0.114f;
-            int intensety= (int)(coefR * sourceColor.R + coefG * sourceColor.G + coefB * sourceColor.B);
+            int intensety = (int)(coefR * sourceColor.R + coefG * sourceColor.G + coefB * sourceColor.B);
             return intensety;
         }
         protected override Color calculateNewPixelColor(Bitmap sourceImage, int x, int y)
@@ -149,13 +149,13 @@ namespace Filter
             return resultColor;
         }
     }
-    class IncreasingBrightness: Filters
+    class IncreasingBrightness : Filters
     {
-        protected int k =20;
+        protected int k = 20;
         protected override Color calculateNewPixelColor(Bitmap sourceImage, int x, int y)
         {
             Color sourceColor = sourceImage.GetPixel(x, y);
-            int resR = Clamp(sourceColor.R+ k, 0, 255);
+            int resR = Clamp(sourceColor.R + k, 0, 255);
             int resG = Clamp(sourceColor.G + k, 0, 255);
             int resB = Clamp(sourceColor.B + k, 0, 255);
             Color resultColor = Color.FromArgb(resR, resG, resB);
@@ -169,11 +169,44 @@ namespace Filter
         {
             Color resultColor = Color.Black;
 
-            if(x>=k && x < sourceImage.Width)
+            if (x >= k && x < sourceImage.Width)
             {
                 resultColor = sourceImage.GetPixel(x - k, y);
+                return resultColor;
             }
-            return resultColor;
+            else
+            {
+                return Color.Black;
+
+            }
         }
+    }
+    class Embossing : MatrixFilter
+    {
+        protected int Intensety(Color sourceColor)
+        {
+            float coefR = 0.299f;
+            float coefG = 0.587f;
+            float coefB = 0.114f;
+            int intensety = Clamp((int)(coefR * sourceColor.R + coefG * sourceColor.G + coefB * sourceColor.B),0, 255);
+            return intensety;
+        }
+        public Embossing()
+        {
+            const int sizeX = 3;
+            const int sizeY = 3;
+            kernel = new float[sizeX, sizeY] { { 0.0f, 1.0f, 0.0f }, { -1.0f, 0.0f, 1.0f }, { 0.0f, -1.0f, 0.0f } };
+        }
+        protected override Color calculateNewPixelColor(Bitmap sourceImage, int x, int y)
+        {
+            
+            Color step1Color = base.calculateNewPixelColor(sourceImage, x, y);
+            int resR = Clamp(step1Color.R + 100, 0, 255);
+            int resG = Clamp(step1Color.G + 100, 0, 255);
+            int resB = Clamp(step1Color.B + 100, 0, 255);
+            Color step2 = Color.FromArgb(resR, resG, resB);
+            return Color.FromArgb(Intensety(step2), Intensety(step2), Intensety(step2));
+        }
+
     }
 }
