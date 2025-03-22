@@ -353,5 +353,66 @@ namespace Filter
             return resultColor;
         }
     }
+    class PerfectReflector : Filters
+    {
+        private static bool key = true;
+        private static int maxR = 0, maxG = 0, maxB = 0;
+        private static float coefR = 0, coefG = 0, coefB = 0;
+        protected static void calculatecoef(Bitmap sourceImage)
+        {
 
+            for (int i = 0; i < sourceImage.Width; i++)
+            {
+                for (int j = 0; j < sourceImage.Height; j++)
+                {
+                    Color tmpColor = sourceImage.GetPixel(i, j);
+                    if ((int)tmpColor.R > maxR)
+                    {
+                        maxR = (int)tmpColor.R;
+                    }
+                    if ((int)tmpColor.G > maxG)
+                    {
+                        maxG = (int)tmpColor.G;
+                    }
+                    if ((int)tmpColor.B > maxB)
+                    {
+                        maxB = (int)tmpColor.B;
+                    }
+                }
+            }
+            coefR = (maxR == 0) ? 1.0f : 255.0f / (float)(maxR);
+            coefG = (maxG == 0) ? 1.0f : 255.0f / (float)(maxG);
+            coefB = (maxB == 0) ? 1.0f : 255.0f / (float)(maxB);
+
+        }
+        protected override Color calculateNewPixelColor(Bitmap sourceImage, int x, int y)
+        {
+            if (key == true)
+            {
+                calculatecoef(sourceImage);
+                key = false;
+            }
+            Color sourceColor = sourceImage.GetPixel(x, y);
+            Color resultColor = Color.FromArgb(
+                Clamp((int)((sourceColor.R) * coefR), 0, 255),
+                Clamp((int)((sourceColor.G) * coefG), 0, 255),
+                Clamp((int)((sourceColor.B) * coefB), 0, 255)
+                );
+            return resultColor;
+        }
+    }
+    class Extension: MatrixFilter
+    {
+        public Extension()
+        {
+            const int size = 3;
+            kernel = new float[size, size]
+            {
+                { 0.0f,1.0f,0.0f},
+                { 1.0f,1.0f,1.0f},
+                { 0.0f,1.0f,0.0f}
+            };
+        }
+    }
 }
+

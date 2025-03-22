@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -120,6 +121,18 @@ namespace Filter
         private void линейноеРастяжениеToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Filters filter = new LinearStretching();
+            backgroundWorker1.RunWorkerAsync(filter);
+        }
+
+        private void идеальныйОтражательToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Filters filter = new PerfectReflector();
+            backgroundWorker1.RunWorkerAsync(filter);
+        }
+
+        private void расширениеToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Filters filter = new Extension();
             backgroundWorker1.RunWorkerAsync(filter);
         }
     }
