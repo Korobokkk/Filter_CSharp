@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
+using System.Runtime.ConstrainedExecution;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms.VisualStyles;
@@ -209,4 +212,146 @@ namespace Filter
         }
 
     }
+
+    class MotionBlur : MatrixFilter
+    {
+        protected override Color calculateNewPixelColor(Bitmap sourceImage, int x, int y)
+        {
+            return base.calculateNewPixelColor(sourceImage, x, y);
+        }
+        public MotionBlur()
+        {
+            int sizeX = 9;
+            int sizeY = 9;
+
+            kernel = new float[sizeX, sizeY];
+            for (int i = 0; i < sizeX; i++)
+            {
+                for (int j = 0; j < sizeY; j++)
+                {
+                    if (i == j)
+                    {
+                        kernel[i, j] = 1.0f / (float)( sizeY);
+                    }
+                    else
+                    {
+                        kernel[i, j] = 0.0f;
+                    }
+                }
+            }
+        }
+    }
+    class GrayWorld: Filters
+    {
+        protected static bool key = true;
+        protected static float coefR, coefG, coefB;
+        protected static void calculatecoef(Bitmap sourceImage)
+        {
+            int midColorR = 0;
+            int midColorG = 0;
+            int midColorB = 0;
+            int N = sourceImage.Width * sourceImage.Height;
+
+            for (int i = 0; i < sourceImage.Width; i++)
+            {
+                for (int j = 0; j < sourceImage.Height; j++)
+                {
+                    Color tmpColor = sourceImage.GetPixel(i, j);
+                    midColorR += (int)tmpColor.R;
+                    midColorG += (int)tmpColor.G;
+                    midColorB += (int)tmpColor.B;
+                }
+            }
+
+            float avgR = (float)midColorR / N;
+            float avgG = (float)midColorG / N;
+            float avgB = (float)midColorB / N;
+
+            float avgGray = (avgR + avgG + avgB) / 3.0f;
+
+            coefR = avgGray / avgR;
+            coefG = avgGray / avgG;
+            coefB = avgGray / avgB;
+        }
+        protected override Color calculateNewPixelColor(Bitmap sourceImage, int x, int y)
+        {
+            if (key == true)
+            {
+                calculatecoef(sourceImage);
+                key = false;
+            }
+            Color sourceColor = sourceImage.GetPixel(x, y);
+
+            Color resultColor = Color.FromArgb(
+                Clamp((int)((int)sourceColor.R * coefR), 0, 255),
+                Clamp((int)((int)sourceColor.G * coefG), 0, 255),
+                Clamp((int)((int)sourceColor.B * coefB), 0, 255)
+                );
+            return resultColor;
+        }
+
+    }
+    class LinearStretching : Filters
+    {
+        private static bool key=true;
+        private static  int maxR=0, minR=255, maxG=0, minG=255, maxB=0, minB= 255;
+        private static float coefR=0, coefG=0, coefB = 0;
+        protected static void calculatecoef(Bitmap sourceImage)
+        {
+
+            for (int i = 0; i < sourceImage.Width; i++)
+            {
+                for (int j = 0; j < sourceImage.Height; j++)
+                {
+                    Color tmpColor = sourceImage.GetPixel(i, j);
+                    if((int)tmpColor.R > maxR)
+                    {
+                        maxR = (int)tmpColor.R;
+                    }
+                    if((int)tmpColor.R < minR)
+                    {
+                        minR = (int)tmpColor.R;
+                    }
+                    if ((int)tmpColor.G > maxG)
+                    {
+                        maxG = (int)tmpColor.G;
+                    }
+                    if ((int)tmpColor.G < minG)
+                    {
+                        minG = (int)tmpColor.G;
+                    }
+
+                    if ((int)tmpColor.B > maxB)
+                    {
+                        maxB = (int)tmpColor.B;
+                    }
+                    if ((int)tmpColor.B < minB)
+                    {
+                        minB = (int)tmpColor.B;
+                    }
+
+                }
+            }
+            coefR = (maxR == minR) ? 1.0f : 255.0f / (float)(maxR - minR);
+            coefG = (maxG == minG) ? 1.0f : 255.0f / (float)(maxG - minG);
+            coefB = (maxB == minB) ? 1.0f : 255.0f / (float)(maxB - minB);
+
+        }
+        protected override Color calculateNewPixelColor(Bitmap sourceImage, int x, int y)
+        {
+            if (key == true)
+            {
+                calculatecoef(sourceImage);
+                key = false;
+            }
+            Color sourceColor = sourceImage.GetPixel(x, y);
+            Color resultColor = Color.FromArgb(
+                Clamp((int)((sourceColor.R - minR) * coefR), 0, 255),
+                Clamp((int)((sourceColor.G -minG)* coefG), 0, 255),
+                Clamp((int)((sourceColor.B -minB)* coefB), 0, 255)
+                );
+            return resultColor;
+        }
+    }
+
 }

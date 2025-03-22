@@ -104,5 +104,23 @@ namespace Filter
             Filters filter = new Embossing();
             backgroundWorker1.RunWorkerAsync(filter);
         }
+
+        private void размытиеВДвиженииToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Filters filter = new MotionBlur();
+            backgroundWorker1.RunWorkerAsync(filter);
+        }
+
+        private void серыйМирToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Filters filter = new GrayWorld();
+            backgroundWorker1.RunWorkerAsync(filter);
+        }
+
+        private void линейноеРастяжениеToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Filters filter = new LinearStretching();
+            backgroundWorker1.RunWorkerAsync(filter);
+        }
     }
 }
