@@ -159,5 +159,37 @@ namespace Filter
             Filters filter = new SharrFilter();
             backgroundWorker1.RunWorkerAsync(filter);
         }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            if (pictureBox1.Image == null) //Bruhhhh, сначала открой изображение
+            {
+                MessageBox.Show("Bruhhhh, сначала открой изображениеXD");
+                return;
+            }
+
+            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+            saveFileDialog1.Filter = "JPeg Image|*.jpg|Bitmap Image|*.bmp|Gif Image|*.gif";
+            saveFileDialog1.Title = "Save an Image File";
+            saveFileDialog1.ShowDialog();
+            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                using (System.IO.FileStream fs = (System.IO.FileStream)saveFileDialog1.OpenFile())
+                {
+                    switch (saveFileDialog1.FilterIndex)
+                    {
+                        case 1:
+                            pictureBox1.Image.Save(fs, System.Drawing.Imaging.ImageFormat.Jpeg);
+                            break;
+                        case 2:
+                            pictureBox1.Image.Save(fs, System.Drawing.Imaging.ImageFormat.Bmp);
+                            break;
+                        case 3:
+                            pictureBox1.Image.Save(fs, System.Drawing.Imaging.ImageFormat.Png);
+                            break;
+                    }
+                }
+            }
+        }
     }
 }
