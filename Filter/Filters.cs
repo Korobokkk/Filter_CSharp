@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.ConstrainedExecution;
 using System.Security.Policy;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms.VisualStyles;
 
@@ -34,6 +35,18 @@ namespace Filter
             for (int i = 0; i < sourceImage.Width; i++)
             {
                 worker.ReportProgress((int)((float)i / resultImage.Width * 100));
+                for (int j = 0; j < sourceImage.Height; j++)
+                {
+                    resultImage.SetPixel(i, j, calculateNewPixelColor(sourceImage, i, j));
+                }
+            }
+            return resultImage;
+        }
+        public Bitmap processImageV2(Bitmap sourceImage )
+        {
+            Bitmap resultImage = new Bitmap(sourceImage.Width, sourceImage.Height);
+            for (int i = 0; i < sourceImage.Width; i++)
+            {
                 for (int j = 0; j < sourceImage.Height; j++)
                 {
                     resultImage.SetPixel(i, j, calculateNewPixelColor(sourceImage, i, j));
@@ -78,7 +91,7 @@ namespace Filter
                     resultB += neighborColor.B * kernel[k + radiusX, l + radiusY];
                 }
             }
-            return Color.FromArgb( Clamp((int)resultR, 0, 255), Clamp((int)resultG, 0, 255), Clamp((int)resultB, 0, 255));
+            return Color.FromArgb(Clamp((int)resultR, 0, 255), Clamp((int)resultG, 0, 255), Clamp((int)resultB, 0, 255));
         }
     }
     class BlurFilter : MatrixFilter
@@ -191,7 +204,7 @@ namespace Filter
             float coefR = 0.299f;
             float coefG = 0.587f;
             float coefB = 0.114f;
-            int intensety = Clamp((int)(coefR * sourceColor.R + coefG * sourceColor.G + coefB * sourceColor.B),0, 255);
+            int intensety = Clamp((int)(coefR * sourceColor.R + coefG * sourceColor.G + coefB * sourceColor.B), 0, 255);
             return intensety;
         }
         public Embossing()
@@ -202,7 +215,7 @@ namespace Filter
         }
         protected override Color calculateNewPixelColor(Bitmap sourceImage, int x, int y)
         {
-            
+
             Color step1Color = base.calculateNewPixelColor(sourceImage, x, y);
             int resR = Clamp(step1Color.R + 100, 0, 255);
             int resG = Clamp(step1Color.G + 100, 0, 255);
@@ -231,7 +244,7 @@ namespace Filter
                 {
                     if (i == j)
                     {
-                        kernel[i, j] = 1.0f / (float)( sizeY);
+                        kernel[i, j] = 1.0f / (float)(sizeY);
                     }
                     else
                     {
@@ -241,7 +254,7 @@ namespace Filter
             }
         }
     }
-    class GrayWorld: Filters
+    class GrayWorld : Filters
     {
         protected static bool key = true;
         protected static float coefR, coefG, coefB;
@@ -293,9 +306,9 @@ namespace Filter
     }
     class LinearStretching : Filters
     {
-        private static bool key=true;
-        private static  int maxR=0, minR=255, maxG=0, minG=255, maxB=0, minB= 255;
-        private static float coefR=0, coefG=0, coefB = 0;
+        private static bool key = true;
+        private static int maxR = 0, minR = 255, maxG = 0, minG = 255, maxB = 0, minB = 255;
+        private static float coefR = 0, coefG = 0, coefB = 0;
         protected static void calculatecoef(Bitmap sourceImage)
         {
 
@@ -304,11 +317,11 @@ namespace Filter
                 for (int j = 0; j < sourceImage.Height; j++)
                 {
                     Color tmpColor = sourceImage.GetPixel(i, j);
-                    if((int)tmpColor.R > maxR)
+                    if ((int)tmpColor.R > maxR)
                     {
                         maxR = (int)tmpColor.R;
                     }
-                    if((int)tmpColor.R < minR)
+                    if ((int)tmpColor.R < minR)
                     {
                         minR = (int)tmpColor.R;
                     }
@@ -347,8 +360,8 @@ namespace Filter
             Color sourceColor = sourceImage.GetPixel(x, y);
             Color resultColor = Color.FromArgb(
                 Clamp((int)((sourceColor.R - minR) * coefR), 0, 255),
-                Clamp((int)((sourceColor.G -minG)* coefG), 0, 255),
-                Clamp((int)((sourceColor.B -minB)* coefB), 0, 255)
+                Clamp((int)((sourceColor.G - minG) * coefG), 0, 255),
+                Clamp((int)((sourceColor.B - minB) * coefB), 0, 255)
                 );
             return resultColor;
         }
@@ -401,7 +414,7 @@ namespace Filter
             return resultColor;
         }
     }
-    class Extension: MatrixFilter
+    class Extension : MatrixFilter
     {
         public Extension()
         {
@@ -412,6 +425,215 @@ namespace Filter
                 { 1.0f,1.0f,1.0f},
                 { 0.0f,1.0f,0.0f}
             };
+        }
+        protected override Color calculateNewPixelColor(Bitmap sourceImage, int x, int y)
+        {
+            int radiusX = kernel.GetLength(0) / 2;
+            int radiusY = kernel.GetLength(1) / 2;
+
+            int max = 0;
+
+            for (int l = -radiusY; l <= radiusY; l++)
+            {
+                for (int k = -radiusX; k <= radiusX; k++)
+                {
+                    int pixelX = x + k;
+                    int pixelY = y + l;
+
+                    if (pixelX >= 0 && pixelY >= 0 && pixelX < sourceImage.Width && pixelY < sourceImage.Height)//чекаем выход за пределы изображения
+                    {
+                        if (kernel[k + radiusX, l + radiusY] == 1)//приводим индексы к нетрицательному виду
+                        {
+                            Color pixelColor = sourceImage.GetPixel(pixelX, pixelY);
+                            int intensity = pixelColor.R + pixelColor.G + pixelColor.B;
+                            max = Math.Max(max, intensity);
+                        }
+
+                    }
+                }
+            }
+            return Color.FromArgb(Clamp(max, 0, 255), Clamp(max, 0, 255), Clamp(max, 0, 255));
+        }
+    }
+    class Contraction : MatrixFilter
+    {
+        public Contraction()
+        {
+            const int size = 3;
+            kernel = new float[size, size]
+            {
+                { 0.0f,1.0f,0.0f},
+                { 1.0f,1.0f,1.0f},
+                { 0.0f,1.0f,0.0f}
+            };
+        }
+        protected override Color calculateNewPixelColor(Bitmap sourceImage, int x, int y)
+        {
+            int radiusX = kernel.GetLength(0) / 2;
+            int radiusY = kernel.GetLength(1) / 2;
+            int minR = 255;
+            int minG = 255; 
+            int minB = 255; 
+
+            for (int l = -radiusY; l <= radiusY; l++)
+            {
+                for (int k = -radiusX; k <= radiusX; k++)
+                {
+                    int pixelX = x + k;
+                    int pixelY = y + l;
+
+                    if (pixelX >= 0 && pixelY >= 0 && pixelX < sourceImage.Width && pixelY < sourceImage.Height)//чекаем выход за пределы изображения
+                    {
+                        if ((int)kernel[k + radiusX, l + radiusY] != 1)//приводим индексы к нетрицательному виду
+                        {
+                            Color pixelColor = sourceImage.GetPixel(pixelX, pixelY);
+
+                            minR = Math.Min(minR, pixelColor.R);
+                            minG = Math.Min(minG, pixelColor.G);
+                            minB = Math.Min(minB, pixelColor.B);
+                        }
+                    }
+                }
+            }
+            return Color.FromArgb(Clamp(minR, 0, 255), Clamp(minG, 0, 255), Clamp(minB, 0, 255));
+        }
+    }
+
+    class MedianFilter : MatrixFilter
+    {
+        private static int[ ] intensety = new int[9];
+        private static int tmp=0;
+        protected override Color calculateNewPixelColor(Bitmap sourceImage, int x, int y)
+        {
+
+            Color resultColor = Color.Black;
+            for (int l = -1; l <= 1; l++)
+            {
+                for (int k = -1; k <= 1; k++)
+                {
+                    int idX = Clamp(x + k, 0, sourceImage.Width - 1);
+                    int idY = Clamp(y + l, 0, sourceImage.Height - 1);
+                    Color sourceColor = sourceImage.GetPixel(idX, idY);
+                    int resR = (int)sourceColor.R;
+                    int resG = (int)sourceColor.G;
+                    int resB = (int)sourceColor.B;
+
+                    intensety[tmp]=(resR+resG+resB)/3;
+                    tmp++;
+                }
+            }
+            tmp = 0;
+            Array.Sort(intensety);
+            resultColor = Color.FromArgb(Clamp(intensety[4],0,255), Clamp(intensety[4],0,255), Clamp(intensety[4],0,255));
+            return resultColor;
+        }
+    }
+    class SobelFilter: MatrixFilter
+    {
+        protected static float[,] kernelGX = new float[3, 3]
+        {
+            {-1, 0, 1 },
+            {-2, 0, 2 },
+            {-1, 0, 1 }
+        };
+        protected static float[,] kernelGY = new float[3, 3]
+        {
+            {-1,-2, -1},
+            { 0, 0, 0 },
+            { 1, 2, 1 }
+        };
+        protected override Color calculateNewPixelColor(Bitmap sourceImage, int x, int y)
+        {
+            float GXColorR = 0;
+            float GXColorG = 0;
+            float GXColorB = 0;
+
+            float GYColorR = 0;
+            float GYColorG = 0;
+            float GYColorB = 0;
+
+            for (int l = -1; l <= 1; l++)
+            {
+                for (int k = -1; k <= 1; k++)
+                {
+                    int idX = Clamp(x + k, 0, sourceImage.Width - 1);
+                    int idY = Clamp(y + l, 0, sourceImage.Height - 1);
+                    Color tmp = sourceImage.GetPixel(idX, idY);
+
+                    GXColorR += tmp.R * kernelGX[k + 1, l + 1];
+                    GXColorG += tmp.G * kernelGX[k + 1, l + 1];
+                    GXColorB += tmp.B * kernelGX[k + 1, l + 1];
+
+                    GYColorR += tmp.R * kernelGY[k + 1, l + 1];
+                    GYColorG += tmp.G * kernelGY[k + 1, l + 1];
+                    GYColorB += tmp.B * kernelGY[k + 1, l + 1];
+                }
+            }
+
+            int red = (int)Math.Sqrt(GXColorR * GXColorR + GYColorR * GYColorR);
+            int green = (int)Math.Sqrt(GXColorG * GXColorG + GYColorG * GYColorG);
+            int blue = (int)Math.Sqrt(GXColorB * GXColorB + GYColorB * GYColorB);
+
+            red = Clamp(red, 0, 255);
+            green = Clamp(green, 0, 255);
+            blue = Clamp(blue, 0, 255);
+
+            return Color.FromArgb(red, green, blue);
+        }
+    }
+    class SharrFilter: MatrixFilter
+    {
+        protected static float[,] kernelGX = new float[3, 3]
+            {
+                {-3, 0, 3},
+                {-10, 0,10},
+                { -3, 0, 3}
+            };
+        protected static float[,] kernelGY = new float[3, 3]
+        {
+                {-3, -10, -3 },
+                {0, 0, 0 },
+                { 3, 10, 3 }
+        };
+
+        protected override Color calculateNewPixelColor(Bitmap sourceImage, int x, int y)
+        {
+            float GXColorR = 0;
+            float GXColorG = 0;
+            float GXColorB = 0;
+
+            float GYColorR = 0;
+            float GYColorG = 0;
+            float GYColorB = 0;
+
+            Color resultColor = Color.Black;
+
+            for (int l = -1; l <= 1; l++)
+            {
+                for (int k = -1; k <= 1; k++)
+                {
+                    int idX = Clamp(x + k, 0, sourceImage.Width - 1);
+                    int idY = Clamp(y + l, 0, sourceImage.Height - 1);
+                    Color tmp = sourceImage.GetPixel(idX, idY);
+
+                    GXColorR += tmp.R * kernelGX[k + 1, l + 1];
+                    GXColorG += tmp.G * kernelGX[k + 1, l + 1];
+                    GXColorB += tmp.B * kernelGX[k + 1, l + 1];
+
+                    GYColorR += tmp.R * kernelGY[k + 1, l + 1];
+                    GYColorG += tmp.G * kernelGY[k + 1, l + 1];
+                    GYColorB += tmp.B * kernelGY[k + 1, l + 1];
+                }
+            }
+            int red = (int)Math.Sqrt(GXColorR * GXColorR + GYColorR * GYColorR);
+            int green = (int)Math.Sqrt(GXColorG * GXColorG + GYColorG * GYColorG);
+            int blue = (int)Math.Sqrt(GXColorB * GXColorB + GYColorB * GYColorB);
+
+            red = Clamp(red, 0, 255);
+            green = Clamp(green, 0, 255);
+            blue = Clamp(blue, 0, 255);
+
+            return Color.FromArgb(red, green, blue);
         }
     }
 }

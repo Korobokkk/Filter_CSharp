@@ -135,5 +135,29 @@ namespace Filter
             Filters filter = new Extension();
             backgroundWorker1.RunWorkerAsync(filter);
         }
+
+        private void сужениеToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Filters filter = new Contraction();
+            backgroundWorker1.RunWorkerAsync(filter);
+        }
+
+        private void медианныйФильтрToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Filters filter = new MedianFilter();
+            backgroundWorker1.RunWorkerAsync(filter);
+        }
+
+        private void фильтрСобеляToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Filters filter = new SobelFilter();
+            backgroundWorker1.RunWorkerAsync(filter);
+        }
+
+        private void фильтрШарраToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Filters filter = new SharrFilter();
+            backgroundWorker1.RunWorkerAsync(filter);
+        }
     }
 }
